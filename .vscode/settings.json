@@ -1,0 +1,49 @@
+{
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter"
+    },
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+    },
+    "[js]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[javascript]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[css]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.suggest.insertMode": "replace",
+        "cSpell.fixSpellingWithRenameProvider": false,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[yml]": {
+        "editor.tabSize": 2,
+    },
+    "[yaml]": {
+        "editor.tabSize": 2,
+    },
+    "[md]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+    },
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 4,
+    },
+    "markdownlint.config": {
+        "MD007": {
+            "indent": 4
+        },
+        "MD031": {
+            "list_items": false
+        }
+    },
+    "vscode-yaml-sort.quotingType": "\""
+}
