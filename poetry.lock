@@ -977,4 +977,4 @@ dev = []
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8.0,<3.12.0"
-content-hash = "1cb162de05333eb3605b0bbccd0e19b0c1f18cd8626dfe05060a4693cbc7aea3"
+content-hash = "5a865f4df17e5520b92279b09d49793e2878f36eecde5d6807cea72329f5106a"
