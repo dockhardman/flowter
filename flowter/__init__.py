@@ -2,7 +2,7 @@ import inspect
 import time
 import uuid
 from functools import wraps
-from typing import Callable, List, Optional, TypeVar, Union
+from typing import Callable, Dict, List, Optional, TypeVar, Union
 
 from typing_extensions import ParamSpec
 
@@ -44,6 +44,12 @@ class Node:
 
         self.id = uuid.uuid4()
 
+    def __eq__(self, __value: object) -> bool:
+        if isinstance(__value, Node):
+            return self.id == __value.id
+        else:
+            return False
+
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
         return self.func(*args, **kwargs)
 
@@ -53,7 +59,9 @@ class Node:
 
     def add_next(self, next_: Union["Node", List["Node"]]):
         self.next_ = self.next_ or []
-        self.next_.extend(self.validate_nodes(next_))
+        for n in self.validate_nodes(next_):
+            if n not in self.next_:
+                self.next_.append(n)
 
     @classmethod
     def validate_node(self, node: "Node", none_allowed: bool = False) -> "Node":
@@ -83,10 +91,24 @@ class FLow:
         self.start_node: Node = Node(lambda: None)
         self.end_node: Node = Node(lambda: None)
 
-    def add_func(self, func: Callable[P, T], src: Optional[Node] = None) -> Node:
-        node = Node(func, next_nodes=self.end_node)
-        if src.next_nodes is None:
-            src.next_nodes = [node]
-        else:
-            src.next_nodes.append(node)
+        self.node_pool: Dict[uuid.UUID, Node] = {}
+
+    def add_node(
+        self,
+        n: Callable[P, T],
+        src: Optional[Node] = None,
+        dst: Optional[Node] = None,
+    ) -> Node:
+        src = Node.validate_node(src, none_allowed=True)
+        node = (
+            n
+            if isinstance(n, Node)
+            else Node(n, next_=Node.validate_node(dst, none_allowed=True))
+        )
+        self.node_pool[node.id] = node
+        if src:
+            src.add_next(node)
+            self.node_pool[src.id] = src
+        if dst:
+            self.node_pool[dst.id] = dst
         return node
