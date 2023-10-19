@@ -1,5 +1,6 @@
 import inspect
 import time
+import uuid
 from functools import wraps
 from typing import Callable, List, Optional, TypeVar, Union
 
@@ -33,13 +34,15 @@ class Node:
     def __init__(
         self,
         func: Callable[P, T],
-        next_nodes: Optional[Union["Node", List["Node"]]] = None,
+        next_: Optional[Union["Node", List["Node"]]] = None,
     ):
         self.func = func
         self.func_signature = inspect.signature(self.func)
-        if isinstance(next_nodes, Node):
-            next_nodes = [next_nodes]
-        self.next_nodes: Optional[List[Node]] = next_nodes or None
+        if isinstance(next_, Node):
+            next_ = [next_]
+        self.next_: Optional[List[Node]] = next_ or None
+
+        self.id = uuid.uuid4()
 
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
         return self.func(*args, **kwargs)
@@ -48,13 +51,31 @@ class Node:
     def func_params(self):
         return self.func_signature.parameters
 
-    def add_next(self, next_node: "Node"):
-        if not isinstance(next_node, Node):
-            raise ValueError("The next_node must be of type 'Node'")
-        if self.next_nodes is None:
-            self.next_nodes = [next_node]
+    def add_next(self, next_: Union["Node", List["Node"]]):
+        self.next_ = self.next_ or []
+        self.next_.extend(self.validate_nodes(next_))
+
+    @classmethod
+    def validate_node(self, node: "Node", none_allowed: bool = False) -> "Node":
+        if isinstance(node, Node):
+            return node
+        elif none_allowed and node is None:
+            return node
         else:
-            self.next_nodes.append(next_node)
+            raise ValueError("The input node must be of type 'Node'")
+
+    @classmethod
+    def validate_nodes(self, nodes: Union["Node", List["Node"]]) -> List["Node"]:
+        if isinstance(nodes, Node):
+            nodes = [nodes]
+        for n in nodes:
+            try:
+                self.validate_node(n)
+            except ValueError:
+                raise ValueError(
+                    "The input nodes must be of type 'Node' but got: {type(n)}"
+                )
+        return nodes
 
 
 class FLow:
