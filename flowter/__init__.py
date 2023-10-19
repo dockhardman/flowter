@@ -86,7 +86,7 @@ class Node:
         return nodes
 
 
-class FLow:
+class Flow:
     def __init__(self, *args, **kwargs):
         self.start_node: Node = Node(lambda: None)
         self.end_node: Node = Node(lambda: None)
