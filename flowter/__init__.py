@@ -2,10 +2,21 @@ import inspect
 import time
 import uuid
 from functools import wraps
-from typing import Callable, Dict, List, Optional, TypeVar, Union
+from typing import (
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Text,
+    TypedDict,
+    TypeVar,
+    Union,
+)
 
 from typing_extensions import ParamSpec
 
+from .helper import collect_params, rand_str, str_or_none, validate_name
 from .version import VERSION
 
 __version__ = VERSION
@@ -30,19 +41,23 @@ class flow:
         return wrapper
 
 
-class Node:
+class Node(Generic[P, T]):
     def __init__(
         self,
         func: Callable[P, T],
+        *args,
+        name: Optional[Text] = None,
         next_: Optional[Union["Node", List["Node"]]] = None,
+        **kwargs,
     ):
         self.func = func
         self.func_signature = inspect.signature(self.func)
         if isinstance(next_, Node):
             next_ = [next_]
+        self.name = validate_name(str_or_none(name) or f"node:{rand_str()}")
         self.next_: Optional[List[Node]] = next_ or None
 
-        self.id = uuid.uuid4()
+        self.id = str(uuid.uuid4())
 
     def __eq__(self, __value: object) -> bool:
         if isinstance(__value, Node):
@@ -56,6 +71,9 @@ class Node:
     @property
     def func_params(self):
         return self.func_signature.parameters
+
+    def run(self, *args: P.args, **kwargs: P.kwargs) -> T:
+        return self(*args, **kwargs)
 
     def add_next(self, next_: Union["Node", List["Node"]]):
         self.next_ = self.next_ or []
@@ -87,11 +105,26 @@ class Node:
 
 
 class Flow:
+    class FlowRunResult(TypedDict):
+        pass
+
     def __init__(self, *args, **kwargs):
-        self.start_node: Node = Node(lambda: None)
-        self.end_node: Node = Node(lambda: None)
+        self.start_node: Node = Node(lambda *args, **kwargs: None)
+        self.end_node: Node = Node(lambda *args, **kwargs: None)
 
         self.node_pool: Dict[uuid.UUID, Node] = {}
+
+    def run(self, *args, **kwargs) -> "FlowRunResult":
+        result = {}
+        node = self.start_node
+        while node:
+            collected_params = collect_params(
+                node.func_params, *args, kwargs=result, **kwargs
+            )
+            print(collected_params)
+            result[node.id] = node.run(*collected_params[0], **collected_params[1])
+            node = node.next_[0] if node.next_ else None
+        return result
 
     def add_node(
         self,

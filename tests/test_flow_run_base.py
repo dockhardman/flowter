@@ -17,3 +17,5 @@ def test_flow_run_base():
 
     node_2 = flow.add_node(function_2, src=node_1, dst=flow.end_node)
     assert node_2
+
+    flow.run(1, 2, 3, b=4, c=5, d=6)
