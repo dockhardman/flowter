@@ -113,9 +113,27 @@ class Flow:
     class FlowRunResult(TypedDict):
         pass
 
-    def __init__(self, *args, **kwargs):
-        self.start_node: Node = Node(lambda *args, **kwargs: None, name="start")
-        self.end_node: Node = Node(lambda *args, **kwargs: None, name="end")
+    def __init__(
+        self,
+        *args,
+        start_node: Optional[Node] = None,
+        end_node: Optional[Node] = None,
+        **kwargs,
+    ):
+        self.start_node: Node = (
+            start_node
+            if isinstance(start_node, Node)
+            else Node(lambda *args, **kwargs: None, name="start")
+            if start_node is None
+            else Node(start_node, name="start")
+        )
+        self.end_node: Node = (
+            end_node
+            if isinstance(end_node, Node)
+            else Node(lambda *args, **kwargs: None, name="end")
+            if end_node is None
+            else Node(end_node, name="end")
+        )
 
         self.node_pool: Dict[uuid.UUID, Node] = {}
 

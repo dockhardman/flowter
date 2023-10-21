@@ -10,7 +10,7 @@ def function_2(c: str, *args, d: str = "test", **kwargs) -> str:
 
 
 def test_flow_run_base():
-    flow = Flow()
+    flow = Flow(start_node=Node(lambda *args, **kwargs: "start", name="start"))
     node_1 = Node(function_1)
     assert node_1 == flow.add_node(node_1, src=flow.start_node)
 
@@ -19,3 +19,4 @@ def test_flow_run_base():
 
     result = flow.run(1, 2, 3, b=4, c="5", d=6)
     print(result)
+    assert result
