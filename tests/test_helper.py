@@ -1,3 +1,5 @@
+import inspect
+import pprint
 import typing
 
 import pytest
@@ -9,6 +11,8 @@ from flowter.helper import (
     validate_name,
     validate_params_name,
 )
+
+from .utils import func_add, func_concat, func_key_value_table, func_merge
 
 
 @pytest.mark.parametrize(
@@ -100,3 +104,43 @@ def test_validate_params_name(
             strip_text=strip_text,
         )
         assert result == expected
+
+
+def test_collect_params():
+    args = (1, 2, 3)
+    kwargs = {"c": 7}
+    extra_kwargs = dict(b=4, c=5, d=6)
+
+    # Test args with kwargs
+    collected_args, collected_kwargs = collect_params(
+        inspect.signature(func_add).parameters, *args, kwargs=kwargs, **extra_kwargs
+    )
+    assert collected_args == (1, 4)
+    assert pprint.pformat(collected_kwargs) == pprint.pformat({})
+
+    # Test positional args
+    collected_args, collected_kwargs = collect_params(
+        inspect.signature(func_concat).parameters, *args, kwargs=kwargs, **extra_kwargs
+    )
+    assert collected_args == (1, 2, 3)
+    assert pprint.pformat(collected_kwargs) == pprint.pformat({})
+
+    # Test var kwargs
+    collected_args, collected_kwargs = collect_params(
+        inspect.signature(func_merge).parameters,
+        *({"hello": "world"},),
+        kwargs=kwargs,
+        **extra_kwargs,
+    )
+    assert collected_args == ({"hello": "world"},)
+    assert pprint.pformat(collected_kwargs) == pprint.pformat({"c": 7, "b": 4, "d": 6})
+
+    # Test kwargs
+    collected_args, collected_kwargs = collect_params(
+        inspect.signature(func_key_value_table).parameters,
+        *args,
+        kwargs=kwargs,
+        **extra_kwargs,
+    )
+    assert collected_args == (1,)
+    assert pprint.pformat(collected_kwargs) == pprint.pformat({"c": 7, "b": 4, "d": 6})

@@ -73,48 +73,53 @@ def collect_params(
     collected_args = []
     collected_kwargs = {}
     args_idx = 0
-    args_name_pool = set()
+    visited_names = set()
+
     for param_name, param_meta in signature_parameters.items():
-        if param_meta.kind == inspect.Parameter.POSITIONAL_ONLY:
-            collected_args.append(args[args_idx])
-            args_idx += 1
-            args_name_pool.add(param_name)
-        elif param_meta.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
-            # Keyword arguments have priority over positional arguments
-            if kwargs and param_name in kwargs and param_name not in args_name_pool:
-                collected_kwargs[param_name] = kwargs[param_name]
-            elif param_name in extra_kwargs and param_name not in args_name_pool:
-                collected_kwargs[param_name] = extra_kwargs[param_name]
+        if param_meta.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD:
+            if kwargs and param_name in kwargs and param_name not in visited_names:
+                collected_args.append(kwargs[param_name])
+            elif param_name in extra_kwargs and param_name not in visited_names:
+                collected_args.append(extra_kwargs[param_name])
             elif args_idx < len(args):
                 collected_args.append(args[args_idx])
                 args_idx += 1
-                args_name_pool.add(param_name)
             elif param_meta.default != inspect.Parameter.empty:
                 collected_kwargs[param_name] = param_meta.default
             else:
                 raise TypeError(f"Missing required positional argument: '{param_name}'")
+
         elif param_meta.kind == inspect.Parameter.VAR_POSITIONAL:
             collected_args.extend(args[args_idx:])
             args_idx = len(args)
+
         elif param_meta.kind == inspect.Parameter.KEYWORD_ONLY:
-            if kwargs and param_name in kwargs and param_name not in args_name_pool:
+            if kwargs and param_name in kwargs and param_name not in visited_names:
                 collected_kwargs[param_name] = kwargs[param_name]
             elif param_meta.default != inspect.Parameter.empty:
                 collected_kwargs[param_name] = param_meta.default
-            elif param_name in extra_kwargs and param_name not in args_name_pool:
+            elif param_name in extra_kwargs and param_name not in visited_names:
                 collected_kwargs[param_name] = extra_kwargs[param_name]
             else:
                 raise TypeError(f"Missing required keyword argument: '{param_name}'")
+
         elif param_meta.kind == inspect.Parameter.VAR_KEYWORD:
             if kwargs:
                 for k, v in kwargs.items():
-                    if k not in collected_kwargs and k not in args_name_pool:
+                    if k not in collected_kwargs and k not in visited_names:
                         collected_kwargs[k] = v
             if extra_kwargs:
                 for k, v in extra_kwargs.items():
-                    if k not in collected_kwargs and k not in args_name_pool:
+                    if k not in collected_kwargs and k not in visited_names:
                         collected_kwargs[k] = v
+
+        elif param_meta.kind == inspect.Parameter.POSITIONAL_ONLY:
+            collected_args.append(args[args_idx])
+            args_idx += 1
+
         else:
             raise TypeError(f"Unsupported parameter type: '{param_meta.kind}'")
+
+        visited_names.add(param_name)
 
     return (tuple(collected_args), collected_kwargs)
