@@ -17,7 +17,7 @@ from typing import (
 import rich
 from typing_extensions import ParamSpec
 
-from .helper import collect_params, rand_str, str_or_none, validate_name
+from .helper import able_to_dict, collect_params, rand_str, str_or_none, validate_name
 from .version import VERSION
 
 __version__ = VERSION
@@ -51,6 +51,7 @@ class Node(Generic[P, T]):
         *args,
         name: Optional[Text] = None,
         next_: Optional[Union["Node", List["Node"]]] = None,
+        return_envelope: Optional[Union[bool, Text]] = None,
         **kwargs,
     ):
         self.func = func
@@ -61,6 +62,7 @@ class Node(Generic[P, T]):
             str_or_none(name) or f"{self.func.__name__}:{rand_str()}"
         )
         self.next_: Optional[List[Node]] = next_ or None
+        self.return_envelope = return_envelope
 
         self.id = str(uuid.uuid4())
 
@@ -146,10 +148,27 @@ class Flow:
             )
             self.log(
                 f"Running node '{node.name}' with args: {collected_params[0]}, "
-                + f"kwargs: {collected_params[1]}"
+                + f"kwargs: {collected_params[1]}",
+                level="debug",
             )
-            result[node.name] = node.run(*collected_params[0], **collected_params[1])
+
+            _node_result = node.run(*collected_params[0], **collected_params[1])
+            if isinstance(node.return_envelope, Text):
+                result[node.return_envelope] = _node_result
+            elif node.return_envelope is False:
+                if able_to_dict(_node_result):
+                    result.update(dict(_node_result))
+                else:
+                    self.log(
+                        f"Node '{node.name}' returned a non-dict object: {_node_result} "
+                        + "but set to return_envelope=False.",
+                        level="warning",
+                    )
+            else:
+                result[node.name] = _node_result
+
             node = node.next_[0] if node.next_ else None
+
         return result
 
     def add_node(
@@ -173,4 +192,7 @@ class Flow:
         return node
 
     def log(self, msg: Text, level: Text = "debug"):
-        console.print(msg)
+        try:
+            console.print(msg[:512])
+        except Exception:
+            pass

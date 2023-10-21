@@ -123,3 +123,16 @@ def collect_params(
         visited_names.add(param_name)
 
     return (tuple(collected_args), collected_kwargs)
+
+
+def able_to_dict(data: typing.Any) -> bool:
+    if isinstance(data, typing.Dict):
+        return True
+    # Check if data is an iterable (excluding string)
+    if not hasattr(data, "__iter__") or isinstance(data, (typing.Text, bytes)):
+        return False
+    # Check if every item in the iterable is a key-value pair (2-item tuple)
+    for item in data:
+        if not (isinstance(item, tuple) and len(item) == 2):
+            return False
+    return True
