@@ -4,7 +4,6 @@ import re
 import string
 import typing
 from types import MappingProxyType
-from typing import Any, Dict, Optional, Text, Tuple
 
 
 def str_or_none(s: typing.Text) -> typing.Optional[typing.Text]:
@@ -21,7 +20,7 @@ def rand_str(length: int = 10) -> typing.Text:
     )
 
 
-def validate_name(s: Text) -> Text:
+def validate_name(s: typing.Text) -> typing.Text:
     if re.match(r"^[a-zA-Z0-9\-_/:]*$", s):
         return s
     raise ValueError(
@@ -31,11 +30,11 @@ def validate_name(s: Text) -> Text:
 
 
 def collect_params(
-    signature_parameters: MappingProxyType[Text, "inspect.Parameter"],
+    signature_parameters: MappingProxyType[typing.Text, "inspect.Parameter"],
     *args,
-    kwargs: Optional[Dict[Text, Any]] = None,
+    kwargs: typing.Optional[typing.Dict[typing.Text, typing.Any]] = None,
     **extra_kwargs,
-) -> Tuple[Tuple[Any, ...], Dict[Text, Any]]:
+) -> typing.Tuple[typing.Tuple[typing.Any, ...], typing.Dict[typing.Text, typing.Any]]:
     collected_args = []
     collected_kwargs = {}
     args_idx = 0
