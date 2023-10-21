@@ -1,4 +1,5 @@
 import inspect
+import keyword
 import random
 import re
 import string
@@ -27,6 +28,40 @@ def validate_name(s: typing.Text) -> typing.Text:
         f"Invalid name: '{s}'. Name must only contain alphanumeric "
         + "characters, dashes, underscores, and colons."
     )
+
+
+def validate_params_name(
+    name: typing.Text,
+    replace_hyphen: typing.Optional[typing.Text] = None,
+    replace_slash: typing.Optional[typing.Text] = None,
+    replace_colon: typing.Optional[typing.Text] = None,
+    strip_whitespace: bool = False,
+    strip_text: typing.Optional[typing.Text] = None,
+) -> typing.Text:
+    if not isinstance(name, typing.Text):
+        raise ValueError(f"Invalid parameter type: '{name}'")
+    # Remove leading and trailing whitespaces
+    if strip_whitespace:
+        name = name.strip()
+    # Remove leading and trailing text
+    if isinstance(strip_text, typing.Text):
+        name = name.strip(strip_text)
+    # Replace colons with underscores
+    if isinstance(replace_colon, typing.Text):
+        name = name.replace(":", replace_colon)
+    # Replace slashes with underscores
+    if isinstance(replace_slash, typing.Text):
+        name = name.replace("/", replace_slash)
+    # Replace hyphens with underscores
+    if isinstance(replace_hyphen, typing.Text):
+        name = name.replace("-", replace_hyphen)
+    # Check if it's a valid Python identifier
+    if not name.isidentifier():
+        raise ValueError(f"Invalid parameter name: '{name}'")
+    # Check if it's a Python keyword
+    if keyword.iskeyword(name):
+        raise ValueError(f"Invalid parameter name: '{name}'")
+    return name
 
 
 def collect_params(

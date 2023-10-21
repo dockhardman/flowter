@@ -2,7 +2,13 @@ import typing
 
 import pytest
 
-from flowter.helper import collect_params, rand_str, str_or_none, validate_name
+from flowter.helper import (
+    collect_params,
+    rand_str,
+    str_or_none,
+    validate_name,
+    validate_params_name,
+)
 
 
 @pytest.mark.parametrize(
@@ -50,3 +56,47 @@ def test_validate_name(s: typing.Text, passed: bool):
             assert False, f"validate_name('{s}') should raise ValueError"
         except ValueError:
             pass
+
+
+@pytest.mark.parametrize(
+    "name, replace_hyphen, replace_slash, replace_colon, strip_whitespace, strip_text, expected",
+    [
+        ("parameter", None, None, None, False, None, "parameter"),
+        (" parameter ", None, None, None, True, None, "parameter"),
+        ("parameter:", "-", None, "_", False, None, "parameter_"),
+        ("parameter/", None, "_", None, False, None, "parameter_"),
+        ("parameter-", "_", None, None, False, None, "parameter_"),
+        (" prefix:parameter/ ", "_", "_", "_", True, "prefix", "_parameter_"),
+        ("123parameter", None, None, None, False, None, ValueError),
+        ("lambda", None, None, None, False, None, ValueError),
+    ],
+)
+def test_validate_params_name(
+    name,
+    replace_hyphen,
+    replace_slash,
+    replace_colon,
+    strip_whitespace,
+    strip_text,
+    expected,
+):
+    if expected is ValueError:
+        with pytest.raises(ValueError):
+            validate_params_name(
+                name,
+                replace_hyphen=replace_hyphen,
+                replace_slash=replace_slash,
+                replace_colon=replace_colon,
+                strip_whitespace=strip_whitespace,
+                strip_text=strip_text,
+            )
+    else:
+        result = validate_params_name(
+            name,
+            replace_hyphen=replace_hyphen,
+            replace_slash=replace_slash,
+            replace_colon=replace_colon,
+            strip_whitespace=strip_whitespace,
+            strip_text=strip_text,
+        )
+        assert result == expected
