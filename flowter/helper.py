@@ -21,7 +21,7 @@ def rand_str(length: int = 10) -> typing.Text:
 
 
 def validate_name(s: typing.Text) -> typing.Text:
-    if re.match(r"^[a-zA-Z0-9\-_/:]*$", s):
+    if re.match(r"^[a-zA-Z0-9\-_/:]+$", s):
         return s
     raise ValueError(
         f"Invalid name: '{s}'. Name must only contain alphanumeric "
