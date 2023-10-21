@@ -14,6 +14,7 @@ from typing import (
     Union,
 )
 
+import rich
 from typing_extensions import ParamSpec
 
 from .helper import collect_params, rand_str, str_or_none, validate_name
@@ -23,6 +24,8 @@ __version__ = VERSION
 
 T = TypeVar("T")
 P = ParamSpec("P")
+
+console = rich.get_console()
 
 
 class flow:
@@ -54,7 +57,9 @@ class Node(Generic[P, T]):
         self.func_signature = inspect.signature(self.func)
         if isinstance(next_, Node):
             next_ = [next_]
-        self.name = validate_name(str_or_none(name) or f"node:{rand_str()}")
+        self.name = validate_name(
+            str_or_none(name) or f"{self.func.__name__}:{rand_str()}"
+        )
         self.next_: Optional[List[Node]] = next_ or None
 
         self.id = str(uuid.uuid4())
@@ -109,8 +114,8 @@ class Flow:
         pass
 
     def __init__(self, *args, **kwargs):
-        self.start_node: Node = Node(lambda *args, **kwargs: None)
-        self.end_node: Node = Node(lambda *args, **kwargs: None)
+        self.start_node: Node = Node(lambda *args, **kwargs: None, name="start")
+        self.end_node: Node = Node(lambda *args, **kwargs: None, name="end")
 
         self.node_pool: Dict[uuid.UUID, Node] = {}
 
@@ -121,8 +126,11 @@ class Flow:
             collected_params = collect_params(
                 node.func_params, *args, kwargs=result, **kwargs
             )
-            print(collected_params)
-            result[node.id] = node.run(*collected_params[0], **collected_params[1])
+            self.log(
+                f"Running node '{node.name}' with args: {collected_params[0]}, "
+                + f"kwargs: {collected_params[1]}"
+            )
+            result[node.name] = node.run(*collected_params[0], **collected_params[1])
             node = node.next_[0] if node.next_ else None
         return result
 
@@ -145,3 +153,6 @@ class Flow:
         if dst:
             self.node_pool[dst.id] = dst
         return node
+
+    def log(self, msg: Text, level: Text = "debug"):
+        console.print(msg)
