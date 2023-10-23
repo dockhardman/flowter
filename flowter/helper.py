@@ -6,6 +6,9 @@ import string
 import typing
 from types import MappingProxyType
 
+if typing.TYPE_CHECKING:
+    from flowter import Flow, Node
+
 
 def str_or_none(s: typing.Text) -> typing.Optional[typing.Text]:
     if isinstance(s, typing.Text):
@@ -136,3 +139,28 @@ def able_to_dict(data: typing.Any) -> bool:
         if not (isinstance(item, tuple) and len(item) == 2):
             return False
     return True
+
+
+def flow_to_mermaid(
+    flow: "Flow", title: typing.Optional[typing.Text] = None, direction_lr: bool = False
+) -> typing.Text:
+    def node_to_mermaid(node: "Node") -> typing.Text:
+        node_conn = f"{node.id.replace('-', '_')} : {node.name}\n"
+        if node.next_:
+            for next_node in node.next_:
+                node_conn += (
+                    f"{node.id.replace('-', '_')} --> "
+                    + f"{next_node.id.replace('-', '_')}\n"
+                )
+        return node_conn.strip()
+
+    mermaid_md = f"---\ntitle: {title if title else flow.name}\n---\n"
+    mermaid_md += "stateDiagram-v2\n"
+    if direction_lr:
+        mermaid_md += "direction LR\n"
+
+    for node in flow.node_pool.values():
+        node_conns = node_to_mermaid(node).strip()
+        mermaid_md += f"{node_conns}\n" if node_conns else ""
+
+    return mermaid_md.strip()
