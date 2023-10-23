@@ -120,6 +120,7 @@ class Flow:
         *args,
         start_node: Optional[Node] = None,
         end_node: Optional[Node] = None,
+        name: Optional[Text] = None,
         **kwargs,
     ):
         self.start_node: Node = (
@@ -136,6 +137,7 @@ class Flow:
             if end_node is None
             else Node(end_node, name="end")
         )
+        self.name = validate_name(name) if name else f"flow:{rand_str()}"
 
         self.node_pool: Dict[uuid.UUID, Node] = {}
 
