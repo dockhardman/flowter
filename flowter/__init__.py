@@ -145,7 +145,10 @@ class Flow:
         )
         self.name = validate_name(name) if name else f"flow:{rand_str()}"
 
-        self.node_pool: Dict[uuid.UUID, Node] = {}
+        self.node_pool: Dict[uuid.UUID, Node] = {
+            self.start_node.id: self.start_node,
+            self.end_node.id: self.end_node,
+        }
 
     def run(self, *args, **kwargs) -> "FlowRunResult":
         result = {}
@@ -196,6 +199,7 @@ class Flow:
             src.add_next(node)
             self.node_pool[src.id] = src
         if dst:
+            node.add_next(dst)
             self.node_pool[dst.id] = dst
         return node
 
