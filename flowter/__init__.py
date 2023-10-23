@@ -75,6 +75,12 @@ class Node(Generic[P, T]):
     def __call__(self, *args: P.args, **kwargs: P.kwargs) -> T:
         return self.func(*args, **kwargs)
 
+    def __repr__(self) -> Text:
+        return f"<Node id={self.id}, name={self.name}>"
+
+    def __str__(self) -> Text:
+        return self.__repr__()
+
     @property
     def func_params(self):
         return self.func_signature.parameters
