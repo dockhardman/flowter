@@ -117,6 +117,18 @@ class Node(Generic[P, T]):
         return nodes
 
 
+class Condition(Node[P, T]):
+    pass
+
+
+class Fork(Node[P, T]):
+    pass
+
+
+class Merge(Node[P, T]):
+    pass
+
+
 class Flow:
     class FlowRunResult(TypedDict):
         pass
