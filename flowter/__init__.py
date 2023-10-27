@@ -192,7 +192,23 @@ class Flow:
             else:
                 result[node.name] = _node_result
 
-            node = node.next_[0] if node.next_ else None
+            # Check if node has next
+            if not node.next_:
+                node = None
+                continue
+
+            # Check condition
+            for next_node in node.next_:
+                if isinstance(next_node, Condition):
+                    if next_node(_node_result):
+                        node = next_node
+                        break
+                else:
+                    node = next_node
+                    break
+            else:
+                node = None
+                continue
 
         return result
 
