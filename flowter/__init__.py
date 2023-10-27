@@ -9,6 +9,7 @@ from typing import (
     List,
     Optional,
     Text,
+    Type,
     TypedDict,
     TypeVar,
     Union,
@@ -24,6 +25,7 @@ __version__ = VERSION
 
 T = TypeVar("T")
 P = ParamSpec("P")
+NodeType = TypeVar("NodeType", bound="Node")
 
 console = rich.get_console()
 
@@ -96,9 +98,9 @@ class Node(Generic[P, T]):
 
     @classmethod
     def validate_node(
-        self, node: Optional["Node"], none_allowed: bool = False
-    ) -> Optional["Node"]:
-        if isinstance(node, Node):
+        cls: Type[NodeType], node: Optional["Node"], none_allowed: bool = False
+    ) -> Optional[NodeType]:
+        if isinstance(node, cls):
             return node
         elif none_allowed and node is None:
             return node
@@ -106,17 +108,33 @@ class Node(Generic[P, T]):
             raise ValueError("The input node must be of type 'Node'")
 
     @classmethod
-    def validate_nodes(self, nodes: Union["Node", List["Node"]]) -> List["Node"]:
-        if isinstance(nodes, Node):
+    def validate_nodes(
+        cls: Type[NodeType], nodes: Union["Node", List["Node"]]
+    ) -> List[NodeType]:
+        if isinstance(nodes, cls):
             nodes = [nodes]
         for n in nodes:
             try:
-                self.validate_node(n)
+                cls.validate_node(n)
             except ValueError:
                 raise ValueError(
                     f"The input nodes must be of type 'Node' but got: {type(n)}"
                 )
         return nodes
+
+    @classmethod
+    def from_callable(
+        cls: Type[NodeType],
+        func: Callable[P, T],
+        next_: Optional[Union["Node", List["Node"]]] = None,
+        *args,
+        **kwargs,
+    ) -> NodeType:
+        return (
+            func
+            if isinstance(func, cls)
+            else cls(func, next_=cls.validate_node(next_, none_allowed=True))
+        )
 
 
 class Condition(Node[P, T]):
