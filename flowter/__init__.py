@@ -234,21 +234,38 @@ class Flow:
         self,
         n: Callable[P, T],
         src: Optional[Node] = None,
+        src_condition_node: Optional[Union[Condition, Callable[[T], bool]]] = None,
         dst: Optional[Node] = None,
+        dst_condition_node: Optional[Union[Condition, Callable[[T], bool]]] = None,
+        *args,
+        **kwargs,
     ) -> Node:
         src = Node.validate_node(src, none_allowed=True)
-        node = (
-            n
-            if isinstance(n, Node)
-            else Node(n, next_=Node.validate_node(dst, none_allowed=True))
+        src_condition_node = (
+            Condition.from_callable(src_condition_node) if src_condition_node else None
         )
-        self.node_pool[node.id] = node
-        if src:
+        dst = Node.validate_node(dst, none_allowed=True)
+        dst_condition_node = (
+            Condition.from_callable(dst_condition_node) if dst_condition_node else None
+        )
+        node = Node.from_callable(n)
+        self.node_pool.setdefault(node.id, node)
+        if src and src_condition_node:
+            src.add_next(src_condition_node)
+            src_condition_node.add_next(node)
+            self.node_pool.setdefault(src.id, src)
+            self.node_pool.setdefault(src_condition_node.id, src_condition_node)
+        elif src:
             src.add_next(node)
-            self.node_pool[src.id] = src
-        if dst:
+            self.node_pool.setdefault(src.id, src)
+        if dst and dst_condition_node:
+            node.add_next(dst_condition_node)
+            dst_condition_node.add_next(dst)
+            self.node_pool.setdefault(dst.id, dst)
+            self.node_pool.setdefault(dst_condition_node.id, dst_condition_node)
+        elif dst:
             node.add_next(dst)
-            self.node_pool[dst.id] = dst
+            self.node_pool.setdefault(dst.id, dst)
         return node
 
     def log(self, msg: Text, level: Text = "debug"):
