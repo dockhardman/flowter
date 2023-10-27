@@ -114,7 +114,7 @@ class Node(Generic[P, T]):
                 self.validate_node(n)
             except ValueError:
                 raise ValueError(
-                    "The input nodes must be of type 'Node' but got: {type(n)}"
+                    f"The input nodes must be of type 'Node' but got: {type(n)}"
                 )
         return nodes
 
