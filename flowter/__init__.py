@@ -95,7 +95,9 @@ class Node(Generic[P, T]):
                 self.next_.append(n)
 
     @classmethod
-    def validate_node(self, node: "Node", none_allowed: bool = False) -> "Node":
+    def validate_node(
+        self, node: Optional["Node"], none_allowed: bool = False
+    ) -> Optional["Node"]:
         if isinstance(node, Node):
             return node
         elif none_allowed and node is None:
