@@ -100,7 +100,7 @@ class Node(Generic[P, T]):
     def validate_node(
         cls: Type[NodeType], node: Optional["Node"], none_allowed: bool = False
     ) -> Optional[NodeType]:
-        if isinstance(node, cls):
+        if isinstance(node, Node):
             return node
         elif none_allowed and node is None:
             return node
@@ -111,7 +111,7 @@ class Node(Generic[P, T]):
     def validate_nodes(
         cls: Type[NodeType], nodes: Union["Node", List["Node"]]
     ) -> List[NodeType]:
-        if isinstance(nodes, cls):
+        if isinstance(nodes, Node):
             nodes = [nodes]
         for n in nodes:
             try:
