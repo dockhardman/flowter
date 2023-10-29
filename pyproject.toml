@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flowter"
-version = "0.1.0"
+version = "0.2.0"
 description = "🌊 Flowter: Making your Python pipelines glide as effortlessly as an otter in water. 🦦"
 authors = ["Allen Chou <f1470891079@gmail.com>"]
 license = "Apache License 2.0"
